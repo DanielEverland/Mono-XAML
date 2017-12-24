@@ -10,7 +10,7 @@ namespace MonoXAML
         private UIObject() { }
         internal UIObject(UserControl content)
         {
-            System.Console.WriteLine(content.ActualHeight);
+            
         }
     }
 }

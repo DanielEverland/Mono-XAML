@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Controls;
+using System.Reflection;
 
 namespace MonoXAML
 {
@@ -22,15 +23,16 @@ namespace MonoXAML
         {
             _instance = new XAMLManager();
         }
+
         /// <summary>
         /// Creates a new UI object using the XAML designer data
         /// </summary>
         /// <typeparam name="T">Mono UI Object</typeparam>
         /// <param name="content">XAML Data</param>
         /// <returns></returns>
-        public static UIObject CreateEntity(UserControl content)
+        public static UIObject CreateEntity<T>() where T : UserControl
         {
-            return new UIObject(content);
+            return new UIObject(Activator.CreateInstance<T>());
         }
     }
 }
