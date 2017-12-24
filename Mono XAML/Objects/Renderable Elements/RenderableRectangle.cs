@@ -14,15 +14,7 @@ namespace MonoXAML.Objects
 
         public override void Render()
         {
-            Texture2D texture = new Texture2D(XAMLManager.GraphicsDeviceManager.GraphicsDevice, 1, 1);
-            Color[] color = new Color[1]
-            {
-                Color.White,
-            };
-
-            texture.SetData(color);
-
-            XAMLManager.SpriteBatch.Draw(texture, Rect, Color);
+            XAMLManager.SpriteBatch.Draw(DefaultTextures.White, Rect, Color);
         }
     }
 }

@@ -54,6 +54,7 @@
     <Compile Include="Objects\XAMLManager.cs" />
     <Compile Include="Parsing\XAMLParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utility\DefaultTextures.cs" />
     <Compile Include="Utility\Extensions.cs" />
     <Compile Include="Utility\Utility.cs" />
   </ItemGroup>
