@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Controls;
 using System.Reflection;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace MonoXAML
 {
@@ -14,14 +16,24 @@ namespace MonoXAML
         private XAMLManager() { }
 
         /// <summary>
-        /// Refernce to manager instance. Call initialize before accessing this
+        /// Reference to manager instance. Call initialize before accessing this
         /// </summary>
         public static XAMLManager Instance { get { return _instance; } }
         private static XAMLManager _instance;
+        
+        public static GraphicsDeviceManager GraphicsDeviceManager { get { return _graphicsDeviceManager; } }
+        private static GraphicsDeviceManager _graphicsDeviceManager;
+        
+        public static SpriteBatch SpriteBatch { get { return _spriteBatch; } }
+        private static SpriteBatch _spriteBatch;
 
-        public static void Initialize()
+        private List<UIObject> _uiObjects = new List<UIObject>();
+
+        public static void Initialize(GraphicsDeviceManager graphicsDevice, SpriteBatch spriteBatch)
         {
             _instance = new XAMLManager();
+            _spriteBatch = spriteBatch;
+            _graphicsDeviceManager = graphicsDevice;
         }
 
         /// <summary>
@@ -34,5 +46,22 @@ namespace MonoXAML
         {
             return new UIObject(Activator.CreateInstance<T>());
         }
+
+        /// <summary>
+        /// Will draw UI
+        /// </summary>
+        public static void Draw()
+        {
+            foreach (UIObject obj in _instance._uiObjects)
+            {
+                obj.Draw();
+            }
+        }
+
+        internal void AddObject(UIObject obj)
+        {
+            _uiObjects.Add(obj);
+        }
+        
     }
 }
