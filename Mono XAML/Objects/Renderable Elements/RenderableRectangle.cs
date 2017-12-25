@@ -27,6 +27,10 @@ namespace MonoXAML.Objects
             {
                 _texture = Utility.GradientToTexture(linearBrush);
             }
+            else if(_rectangle.Fill is RadialGradientBrush radialBrush)
+            {
+                _texture = Utility.GradientToTexture(radialBrush);
+            }
             else if(_rectangle.Fill is SolidColorBrush solidColorBrush)
             {
                 _texture = DefaultTextures.White;

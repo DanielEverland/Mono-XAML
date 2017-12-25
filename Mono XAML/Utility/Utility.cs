@@ -11,17 +11,54 @@ namespace MonoXAML
     public static class Utility
     {
         private const int GRADIENT_RESOLUTION = 128;
-        
+
+        public static float Lerp(float value, float a, float b)
+        {
+            return a * value + b * (1 - value);
+        }
         public static Texture2D GradientToTexture(GradientBrush gradient)
         {
             if(gradient is LinearGradientBrush linearGradient)
             {
                 return LinearGradientToTexture(linearGradient);
             }
+            else if(gradient is RadialGradientBrush radialGradient)
+            {
+                return RadialGradientToTexture(radialGradient);
+            }
             else
             {
                 throw new NotImplementedException("Cannot render " + gradient.GetType());
             }
+        }
+        private static Texture2D RadialGradientToTexture(RadialGradientBrush gradientBrush)
+        {
+            Texture2D texture = new Texture2D(
+                    XAMLManager.GraphicsDeviceManager.GraphicsDevice,
+                    GRADIENT_RESOLUTION,
+                    GRADIENT_RESOLUTION);
+
+            Microsoft.Xna.Framework.Vector2 radial = gradientBrush.GradientOrigin.ToVector();
+
+            Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[GRADIENT_RESOLUTION * GRADIENT_RESOLUTION];
+
+            for (int i = 0; i < colors.Length; i++)
+            {
+                int x = i % GRADIENT_RESOLUTION;
+                int y = (int)Math.Floor((double)i / (double)GRADIENT_RESOLUTION);
+
+                Microsoft.Xna.Framework.Vector2 currentPoint = new Microsoft.Xna.Framework.Vector2(x, y) / GRADIENT_RESOLUTION;
+                Microsoft.Xna.Framework.Vector2 delta = radial - currentPoint;
+
+                delta.X /= (float)gradientBrush.RadiusX;
+                delta.Y /= (float)gradientBrush.RadiusY;
+
+                colors[i] = GetColor(delta.Length(), gradientBrush);
+            }
+
+            texture.SetData(colors);
+
+            return texture;
         }
         private static Texture2D LinearGradientToTexture(LinearGradientBrush linearGradient)
         {
@@ -60,6 +97,7 @@ namespace MonoXAML
                 if(stop.Offset <= offset)
                 {
                     left = stop;
+                    right = stop;
                 }
 
                 if(stop.Offset >= offset)
