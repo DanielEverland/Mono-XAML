@@ -34,7 +34,7 @@ namespace MonoXAML.Objects
             if(HasStroke)
                 _strokeTexture = Utility.StrokeToTexture((int)_rectangle.StrokeThickness, _rectangle.Stroke);
         }
-        public override void Render()
+        protected override void DoRender()
         {
             if (!HasBrush)
                 return;

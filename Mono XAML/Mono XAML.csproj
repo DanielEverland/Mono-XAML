@@ -48,8 +48,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Objects\Renderable Elements\IRenderableObject.cs" />
     <Compile Include="Objects\Renderable Elements\RenderableElement.cs" />
+    <Compile Include="Objects\Renderable Elements\RenderableObjectBase.cs" />
     <Compile Include="Objects\Renderable Elements\RenderableRectangle.cs" />
+    <Compile Include="Objects\Renderable Elements\Stroke.cs" />
     <Compile Include="Objects\UIObject.cs" />
     <Compile Include="Objects\XAMLManager.cs" />
     <Compile Include="Parsing\XAMLParser.cs" />
