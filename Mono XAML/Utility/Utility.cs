@@ -7,8 +7,6 @@ namespace MonoXAML
 {
     public static class Utility
     {
-        private const int GRADIENT_RESOLUTION = 128;
-
         public static bool IsSolidColor(Brush brush)
         {
             return brush is SolidColorBrush;
@@ -17,39 +15,13 @@ namespace MonoXAML
         {
             return a * value + b * (1 - value);
         }
-        public static Texture2D StrokeToTexture(int strokeThickness, Brush brush)
-        {
-            Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[GRADIENT_RESOLUTION * GRADIENT_RESOLUTION];
-
-            Texture2D sourceTexture = BrushToTexture(brush);
-            Microsoft.Xna.Framework.Color[] sourceColors = new Microsoft.Xna.Framework.Color[sourceTexture.Width * sourceTexture.Height];
-            
-            sourceTexture.GetData(sourceColors);
-
-            for (int i = 0; i < colors.Length; i++)
-            {
-                int x = i % GRADIENT_RESOLUTION;
-                int y = (int)Math.Floor((double)i / (double)GRADIENT_RESOLUTION);
-
-                if (ShouldRenderStroke(x, y, strokeThickness, GRADIENT_RESOLUTION, GRADIENT_RESOLUTION))
-                {
-                    colors[i] = GetColor(x, y, sourceColors);
-                }
-            }
-
-            Texture2D texture = new Texture2D(XAMLManager.GraphicsDeviceManager.GraphicsDevice, GRADIENT_RESOLUTION, GRADIENT_RESOLUTION);
-
-            texture.SetData(colors);
-
-            return texture;
-        }
         private static bool ShouldRenderStroke(int x, int y, int strokeThickness, int width, int height)
         {
             return x < strokeThickness || y < strokeThickness || y > height - strokeThickness || x > width - strokeThickness;
         }
-        private static Microsoft.Xna.Framework.Color GetColor(int x, int y, Microsoft.Xna.Framework.Color[] source)
+        private static Microsoft.Xna.Framework.Color GetColor(int x, int y, int width, Microsoft.Xna.Framework.Color[] source)
         {
-            int i = y * GRADIENT_RESOLUTION + x;
+            int i = GetIndex(x, y, width);
 
             if(i >= source.Length)
             {
@@ -60,11 +32,11 @@ namespace MonoXAML
                 return source[i];
             }
         }
-        public static Texture2D BrushToTexture(Brush brush)
+        public static Texture2D BrushToTexture(Brush brush, Vector2 size)
         {
             if(brush is GradientBrush gradient)
             {
-                return GradientToTexture(gradient);
+                return GradientToTexture(gradient, size);
             }
             else if(brush is SolidColorBrush solidColor)
             {
@@ -75,77 +47,128 @@ namespace MonoXAML
                 throw new NotImplementedException("Cannot render " + brush.GetType());
             }
         }
-        public static Texture2D GradientToTexture(GradientBrush gradient)
+        public static Texture2D GradientToTexture(GradientBrush gradient, Vector2 size)
         {
             if(gradient is LinearGradientBrush linearGradient)
             {
-                return LinearGradientToTexture(linearGradient);
+                return LinearGradientToTexture(linearGradient, size);
             }
             else if(gradient is RadialGradientBrush radialGradient)
             {
-                return RadialGradientToTexture(radialGradient);
+                return RadialGradientToTexture(radialGradient, size);
             }
             else
             {
                 throw new NotImplementedException("Cannot render " + gradient.GetType());
             }
         }
-        private static Texture2D RadialGradientToTexture(RadialGradientBrush gradientBrush)
+        private static Texture2D RadialGradientToTexture(RadialGradientBrush gradientBrush, Vector2 size)
         {
             Texture2D texture = new Texture2D(
                     XAMLManager.GraphicsDeviceManager.GraphicsDevice,
-                    GRADIENT_RESOLUTION,
-                    GRADIENT_RESOLUTION);
+                    (int)size.X,
+                    (int)size.Y);
+            
+            Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[texture.Width * texture.Height];
 
-            Vector2 radial = gradientBrush.GradientOrigin.ToVector();
-
-            Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[GRADIENT_RESOLUTION * GRADIENT_RESOLUTION];
-
-            for (int i = 0; i < colors.Length; i++)
+            for (int x = 0; x < texture.Width; x++)
             {
-                int x = i % GRADIENT_RESOLUTION;
-                int y = (int)Math.Floor((double)i / (double)GRADIENT_RESOLUTION);
-
-                Vector2 currentPoint = new Vector2(x, y) / GRADIENT_RESOLUTION;
-                Vector2 delta = radial - currentPoint;
-
-                delta.X /= (float)gradientBrush.RadiusX;
-                delta.Y /= (float)gradientBrush.RadiusY;
-
-                colors[i] = GetColor(delta.Length(), gradientBrush);
+                for (int y = 0; y < texture.Height; y++)
+                {
+                    colors[GetIndex(x, y, texture.Width)]
+                        = GetColor(new Vector2(
+                            (float)x / (float)texture.Width,
+                            (float)y / (float)texture.Height),
+                            gradientBrush);
+                }
             }
 
             texture.SetData(colors);
 
             return texture;
         }
-        private static Texture2D LinearGradientToTexture(LinearGradientBrush linearGradient)
+        private static Texture2D LinearGradientToTexture(LinearGradientBrush linearGradient, Vector2 size)
         {
             Texture2D texture = new Texture2D(
-                    XAMLManager.GraphicsDeviceManager.GraphicsDevice, 
-                    GRADIENT_RESOLUTION, 
-                    GRADIENT_RESOLUTION);
+                    XAMLManager.GraphicsDeviceManager.GraphicsDevice,
+                    (int)size.X,
+                    (int)size.Y);
+                        
+            Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[texture.Width * texture.Height];
 
-            Vector2 startPoint = linearGradient.StartPoint.ToVector() * GRADIENT_RESOLUTION;
-            Vector2 endPoint = linearGradient.EndPoint.ToVector() * GRADIENT_RESOLUTION;
-
-            float gradientDistance = Vector2.Distance(startPoint, endPoint);
-            
-            Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[GRADIENT_RESOLUTION * GRADIENT_RESOLUTION];
-
-            for (int i = 0; i < colors.Length; i++)
+            for (int x = 0; x < texture.Width; x++)
             {
-                int x = i % GRADIENT_RESOLUTION;
-                int y = (int)Math.Floor((double)i / (double)GRADIENT_RESOLUTION);
-
-                float perpendicularDistance = PerpendicularDistance(startPoint, endPoint, new Vector2(x, y));
-
-                colors[i] = GetColor(perpendicularDistance / gradientDistance, linearGradient);
+                for (int y = 0; y < texture.Height; y++)
+                {
+                    colors[GetIndex(x, y, texture.Width)]
+                        = GetColor(new Vector2(
+                            (float)x / (float)texture.Width,
+                            (float)y / (float)texture.Height),
+                            linearGradient);
+                }
             }
 
             texture.SetData(colors);
 
             return texture;
+        }
+        private static int GetIndex(int x, int y, int width)
+        {
+            return y * width + x;
+        }
+        /// <summary>
+        /// Returns a color based on a XAML brush
+        /// </summary>
+        /// <param name="position">Specifies position in the space (0, 0) to (1, 0) - out of bounds values will be clamped</param>
+        /// <param name="brush">Brush specified from XAML Designer</param>
+        public static Microsoft.Xna.Framework.Color GetColor(Vector2 position, Brush brush)
+        {
+            position = Vector2.Clamp(position, Vector2.Zero, Vector2.One);
+
+            if(brush is GradientBrush gradient)
+            {
+                return GetColor(position, brush);
+            }
+            else if(brush is SolidColorBrush solidColor)
+            {
+                return solidColor.Color.Convert();
+            }
+            else
+            {
+                throw new NotImplementedException("Does not recognize " + brush.GetType());
+            }
+        }
+        private static Microsoft.Xna.Framework.Color GetColor(Vector2 position, GradientBrush brush)
+        {
+            if(brush is LinearGradientBrush linear)
+            {
+                return GetColor(position, linear);
+            }
+            else if(brush is RadialGradientBrush radial)
+            {
+                return GetColor(position, radial);
+            }
+            else
+            {
+                throw new NotImplementedException("Does not recognize " + brush.GetType());
+            }
+        }
+        private static Microsoft.Xna.Framework.Color GetColor(Vector2 position, RadialGradientBrush brush)
+        {
+            Vector2 radial = brush.GradientOrigin.ToVector();
+            
+            Vector2 delta = radial - position;
+
+            delta.X /= (float)brush.RadiusX;
+            delta.Y /= (float)brush.RadiusY;
+
+            return GetColor(delta.Length(), brush);
+        }
+        private static Microsoft.Xna.Framework.Color GetColor(Vector2 position, LinearGradientBrush brush)
+        {
+            float offset = PerpendicularDistance(brush.StartPoint.ToVector(), brush.EndPoint.ToVector(), position);
+
+            return GetColor(offset, brush);
         }
         private static Microsoft.Xna.Framework.Color GetColor(float offset, GradientBrush brush)
         {

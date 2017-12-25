@@ -9,7 +9,7 @@ namespace MonoXAML.Objects
     {
         public RenderableRectangle(FrameworkElement element) : base(element)
         {
-            CreateTextureReferences();
+            Initialize();
         }
 
         public Texture2D FillTexture { get { return _fillTexture; } set { _fillTexture = value; } }
@@ -19,20 +19,26 @@ namespace MonoXAML.Objects
 
         private System.Windows.Shapes.Rectangle _rectangle { get { return (System.Windows.Shapes.Rectangle)Element; } }
         private bool HasBrush { get { return _rectangle.Fill != null; } }
-        private bool HasStroke { get { return _rectangle.Stroke != null; } }
 
         private Texture2D _fillTexture;
-        private Texture2D _strokeTexture;
 
-        private void CreateTextureReferences()
+        private void Initialize()
+        {
+            CreateFill();
+            CreateStroke();
+        }
+        private void CreateFill()
         {
             if (!HasBrush)
                 return;
-            
-            _fillTexture = Utility.BrushToTexture(_rectangle.Fill);
 
-            if(HasStroke)
-                _strokeTexture = Utility.StrokeToTexture((int)_rectangle.StrokeThickness, _rectangle.Stroke);
+            _fillTexture = Utility.BrushToTexture(_rectangle.Fill, WorldSize);
+        }
+        private void CreateStroke()
+        {
+            Stroke stroke = new Stroke();
+
+            stroke.SetParent(this);
         }
         protected override void DoRender()
         {
@@ -40,9 +46,6 @@ namespace MonoXAML.Objects
                 return;
 
             XAMLManager.SpriteBatch.Draw(_fillTexture, Rect, FillColor);
-
-            if (HasStroke)
-                XAMLManager.SpriteBatch.Draw(_strokeTexture, Rect, StrokeColor);
         }
     }
 }
