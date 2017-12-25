@@ -9,43 +9,42 @@ namespace MonoXAML.Objects
     {
         public RenderableRectangle(FrameworkElement element) : base(element)
         {
-            CreateTextureReference();
+            CreateTextureReferences();
         }
 
-        public Microsoft.Xna.Framework.Color Color { get { return Utility.GetColor(_rectangle.Fill); } }
+        public Texture2D FillTexture { get { return _fillTexture; } set { _fillTexture = value; } }
+
+        public Microsoft.Xna.Framework.Color StrokeColor { get { return Utility.GetColor(_rectangle.Stroke); } }
+        public Microsoft.Xna.Framework.Color FillColor { get { return Utility.GetColor(_rectangle.Fill); } }
 
         private System.Windows.Shapes.Rectangle _rectangle { get { return (System.Windows.Shapes.Rectangle)Element; } }
         private bool HasBrush { get { return _rectangle.Fill != null; } }
-        private Texture2D _texture;
+        private bool HasStroke { get { return _rectangle.Stroke != null; } }
 
-        private void CreateTextureReference()
+        private Texture2D _fillTexture;
+        private Texture2D _strokeTexture;
+
+        private void CreateTextureReferences()
         {
             if (!HasBrush)
                 return;
+            
+            _fillTexture = Utility.BrushToTexture(_rectangle.Fill);
 
-            if(_rectangle.Fill is LinearGradientBrush linearBrush)
-            {
-                _texture = Utility.GradientToTexture(linearBrush);
-            }
-            else if(_rectangle.Fill is RadialGradientBrush radialBrush)
-            {
-                _texture = Utility.GradientToTexture(radialBrush);
-            }
-            else if(_rectangle.Fill is SolidColorBrush solidColorBrush)
-            {
-                _texture = DefaultTextures.White;
-            }
-            else
-            {
-                throw new System.ArgumentException("Cannot render " + _rectangle.Fill.GetType());
-            }
+            _fillTexture.Save(@"C:\Users\Daniel Everland\Pictures\test.png");
+
+            if(HasStroke)
+                _strokeTexture = Utility.StrokeToTexture((int)_rectangle.StrokeThickness, _rectangle.Stroke);
         }
         public override void Render()
         {
             if (!HasBrush)
                 return;
 
-            XAMLManager.SpriteBatch.Draw(_texture, Rect, Color);
+            XAMLManager.SpriteBatch.Draw(_fillTexture, Rect, FillColor);
+
+            if (HasStroke)
+                XAMLManager.SpriteBatch.Draw(_strokeTexture, Rect, StrokeColor);
         }
     }
 }

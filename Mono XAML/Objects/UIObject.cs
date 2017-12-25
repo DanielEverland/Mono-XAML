@@ -18,6 +18,8 @@ namespace MonoXAML
             XAMLManager.Instance.AddObject(this);
         }
 
+        public IEnumerable<RenderableElement> Elements { get { return _elements; } }
+
         private List<RenderableElement> _elements;
         
         public void Draw()

@@ -12,9 +12,71 @@ namespace MonoXAML
     {
         private const int GRADIENT_RESOLUTION = 128;
 
+        public static bool IsSolidColor(Brush brush)
+        {
+            return brush is SolidColorBrush;
+        }
         public static float Lerp(float value, float a, float b)
         {
             return a * value + b * (1 - value);
+        }
+        public static Texture2D StrokeToTexture(int strokeThickness, Brush brush)
+        {
+            Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[GRADIENT_RESOLUTION * GRADIENT_RESOLUTION];
+
+            Texture2D sourceTexture = BrushToTexture(brush);
+            Microsoft.Xna.Framework.Color[] sourceColors = new Microsoft.Xna.Framework.Color[sourceTexture.Width * sourceTexture.Height];
+            
+            sourceTexture.GetData(sourceColors);
+
+            for (int i = 0; i < colors.Length; i++)
+            {
+                int x = i % GRADIENT_RESOLUTION;
+                int y = (int)Math.Floor((double)i / (double)GRADIENT_RESOLUTION);
+
+                if (ShouldRenderStroke(x, y, strokeThickness, GRADIENT_RESOLUTION, GRADIENT_RESOLUTION))
+                {
+                    colors[i] = GetColor(x, y, sourceColors);
+                }
+            }
+
+            Texture2D texture = new Texture2D(XAMLManager.GraphicsDeviceManager.GraphicsDevice, GRADIENT_RESOLUTION, GRADIENT_RESOLUTION);
+
+            texture.SetData(colors);
+
+            return texture;
+        }
+        private static bool ShouldRenderStroke(int x, int y, int strokeThickness, int width, int height)
+        {
+            return x < strokeThickness || y < strokeThickness || y > height - strokeThickness || x > width - strokeThickness;
+        }
+        private static Microsoft.Xna.Framework.Color GetColor(int x, int y, Microsoft.Xna.Framework.Color[] source)
+        {
+            int i = y * GRADIENT_RESOLUTION + x;
+
+            if(i >= source.Length)
+            {
+                return Microsoft.Xna.Framework.Color.White;
+            }
+            else
+            {
+                return source[i];
+            }
+        }
+        public static Texture2D BrushToTexture(Brush brush)
+        {
+            if(brush is GradientBrush gradient)
+            {
+                return GradientToTexture(gradient);
+            }
+            else if(brush is SolidColorBrush solidColor)
+            {
+                return DefaultTextures.White;
+            }
+            else
+            {
+                throw new NotImplementedException("Cannot render " + brush.GetType());
+            }
         }
         public static Texture2D GradientToTexture(GradientBrush gradient)
         {
@@ -80,7 +142,7 @@ namespace MonoXAML
                 int y = (int)Math.Floor((double)i / (double)GRADIENT_RESOLUTION);
 
                 float perpendicularDistance = PerpendicularDistance(startPoint, endPoint, new Microsoft.Xna.Framework.Vector2(x, y));
-                
+
                 colors[i] = GetColor(perpendicularDistance / gradientDistance, linearGradient);
             }
 
@@ -249,12 +311,16 @@ namespace MonoXAML
         }
         public static Microsoft.Xna.Framework.Color GetColor(Brush brush)
         {
-            byte r = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).R;
-            byte g = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).G;
-            byte b = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).B;
-            byte a = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).A;
-
-            return new Microsoft.Xna.Framework.Color(r, g, b, a);
+            if (!IsSolidColor(brush))
+                return Microsoft.Xna.Framework.Color.White;
+            
+            return new Microsoft.Xna.Framework.Color()
+            {
+                R = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).R,
+                G = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).G,
+                B = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).B,
+                A = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).A,
+            };
         }
     }
 }
