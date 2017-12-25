@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework;
 
 namespace MonoXAML
 {
@@ -100,7 +97,7 @@ namespace MonoXAML
                     GRADIENT_RESOLUTION,
                     GRADIENT_RESOLUTION);
 
-            Microsoft.Xna.Framework.Vector2 radial = gradientBrush.GradientOrigin.ToVector();
+            Vector2 radial = gradientBrush.GradientOrigin.ToVector();
 
             Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[GRADIENT_RESOLUTION * GRADIENT_RESOLUTION];
 
@@ -109,8 +106,8 @@ namespace MonoXAML
                 int x = i % GRADIENT_RESOLUTION;
                 int y = (int)Math.Floor((double)i / (double)GRADIENT_RESOLUTION);
 
-                Microsoft.Xna.Framework.Vector2 currentPoint = new Microsoft.Xna.Framework.Vector2(x, y) / GRADIENT_RESOLUTION;
-                Microsoft.Xna.Framework.Vector2 delta = radial - currentPoint;
+                Vector2 currentPoint = new Vector2(x, y) / GRADIENT_RESOLUTION;
+                Vector2 delta = radial - currentPoint;
 
                 delta.X /= (float)gradientBrush.RadiusX;
                 delta.Y /= (float)gradientBrush.RadiusY;
@@ -129,10 +126,10 @@ namespace MonoXAML
                     GRADIENT_RESOLUTION, 
                     GRADIENT_RESOLUTION);
 
-            Microsoft.Xna.Framework.Vector2 startPoint = linearGradient.StartPoint.ToVector() * GRADIENT_RESOLUTION;
-            Microsoft.Xna.Framework.Vector2 endPoint = linearGradient.EndPoint.ToVector() * GRADIENT_RESOLUTION;
+            Vector2 startPoint = linearGradient.StartPoint.ToVector() * GRADIENT_RESOLUTION;
+            Vector2 endPoint = linearGradient.EndPoint.ToVector() * GRADIENT_RESOLUTION;
 
-            float gradientDistance = Microsoft.Xna.Framework.Vector2.Distance(startPoint, endPoint);
+            float gradientDistance = Vector2.Distance(startPoint, endPoint);
             
             Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[GRADIENT_RESOLUTION * GRADIENT_RESOLUTION];
 
@@ -141,7 +138,7 @@ namespace MonoXAML
                 int x = i % GRADIENT_RESOLUTION;
                 int y = (int)Math.Floor((double)i / (double)GRADIENT_RESOLUTION);
 
-                float perpendicularDistance = PerpendicularDistance(startPoint, endPoint, new Microsoft.Xna.Framework.Vector2(x, y));
+                float perpendicularDistance = PerpendicularDistance(startPoint, endPoint, new Vector2(x, y));
 
                 colors[i] = GetColor(perpendicularDistance / gradientDistance, linearGradient);
             }
@@ -179,18 +176,18 @@ namespace MonoXAML
         /// <summary>
         /// Returns point on line segment betwee <paramref name="a"/> & <paramref name="b"/> perpendicular to <paramref name="p"/>
         /// </summary>
-        public static Microsoft.Xna.Framework.Vector2 LineSegmentPoint(Microsoft.Xna.Framework.Vector2 a, Microsoft.Xna.Framework.Vector2 b, Microsoft.Xna.Framework.Vector2 p)
+        public static Vector2 LineSegmentPoint(Vector2 a, Vector2 b, Vector2 p)
         {
-            float lineLength = Microsoft.Xna.Framework.Vector2.DistanceSquared(a, b);
+            float lineLength = Vector2.DistanceSquared(a, b);
 
             //a == b
             if (lineLength == 0)
                 return p;
 
-            float dot = Microsoft.Xna.Framework.Vector2.Dot(p - a, b - a);
+            float dot = Vector2.Dot(p - a, b - a);
             float t = Math.Max(0, Math.Min(1, dot / lineLength));
 
-            return new Microsoft.Xna.Framework.Vector2()
+            return new Vector2()
             {
                 X = a.X + t * (b.X - a.X),
                 Y = a.Y + t * (b.Y - a.Y),
@@ -200,9 +197,9 @@ namespace MonoXAML
         /// Returns the distance between <paramref name="a"/> and <paramref name="b"/> using <paramref name="p"/> as the perpendicular midway point
         /// </summary>
         /// <returns>Distance between <paramref name="a"/> and line segment point</returns>
-        private static float PerpendicularDistance(Microsoft.Xna.Framework.Vector2 a, Microsoft.Xna.Framework.Vector2 b, Microsoft.Xna.Framework.Vector2 p)
+        private static float PerpendicularDistance(Vector2 a, Vector2 b, Vector2 p)
         {
-            return Microsoft.Xna.Framework.Vector2.Distance(a, LineSegmentPoint(a, b, p));
+            return Vector2.Distance(a, LineSegmentPoint(a, b, p));
         }
         private static double GetLocalDelta(double globalOffset, double leftOffset, double rightOffset)
         {
@@ -211,21 +208,21 @@ namespace MonoXAML
 
             return (globalOffset - leftOffset) / (rightOffset - leftOffset);
         }
-        public static Microsoft.Xna.Framework.Rectangle GetRectangle(System.Windows.FrameworkElement element)
+        public static Rectangle GetRectangle(System.Windows.FrameworkElement element)
         {
-            return new Microsoft.Xna.Framework.Rectangle(GetRectPosition(element), GetRectSize(element));
+            return new Rectangle(GetRectPosition(element), GetRectSize(element));
         }
-        public static Microsoft.Xna.Framework.Point GetRectSize(System.Windows.FrameworkElement element)
+        public static Point GetRectSize(System.Windows.FrameworkElement element)
         {
-            return new Microsoft.Xna.Framework.Point()
+            return new Point()
             {
                 X = GetRectWidth(element),
                 Y = GetRectHeight(element),
             };
         }
-        public static Microsoft.Xna.Framework.Point GetRectPosition(System.Windows.FrameworkElement element)
+        public static Point GetRectPosition(System.Windows.FrameworkElement element)
         {
-            return new Microsoft.Xna.Framework.Point()
+            return new Point()
             {
                 X = GetRectXPosition(element),
                 Y = GetRectYPosition(element),
@@ -305,9 +302,9 @@ namespace MonoXAML
 
             throw new ArgumentException("Cannot identify alignment " + element.HorizontalAlignment);
         }
-        public static Microsoft.Xna.Framework.Rectangle GetRectangle(System.Windows.Rect rect)
+        public static Rectangle GetRectangle(System.Windows.Rect rect)
         {
-            return new Microsoft.Xna.Framework.Rectangle((int)rect.TopLeft.X, (int)rect.TopLeft.Y, (int)rect.Width, (int)rect.Height);
+            return new Rectangle((int)rect.TopLeft.X, (int)rect.TopLeft.Y, (int)rect.Width, (int)rect.Height);
         }
         public static Microsoft.Xna.Framework.Color GetColor(Brush brush)
         {
@@ -316,10 +313,10 @@ namespace MonoXAML
             
             return new Microsoft.Xna.Framework.Color()
             {
-                R = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).R,
-                G = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).G,
-                B = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).B,
-                A = ((Color)brush.GetValue(SolidColorBrush.ColorProperty)).A,
+                R = ((System.Windows.Media.Color)brush.GetValue(SolidColorBrush.ColorProperty)).R,
+                G = ((System.Windows.Media.Color)brush.GetValue(SolidColorBrush.ColorProperty)).G,
+                B = ((System.Windows.Media.Color)brush.GetValue(SolidColorBrush.ColorProperty)).B,
+                A = ((System.Windows.Media.Color)brush.GetValue(SolidColorBrush.ColorProperty)).A,
             };
         }
     }
