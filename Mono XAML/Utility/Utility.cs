@@ -94,10 +94,15 @@ namespace MonoXAML
 
             foreach (GradientStop stop in brush.GradientStops)
             {
+                if (left == null)
+                    left = stop;
+
+                if (right == null)
+                    right = stop;
+
                 if(stop.Offset <= offset)
                 {
                     left = stop;
-                    right = stop;
                 }
 
                 if(stop.Offset >= offset)
