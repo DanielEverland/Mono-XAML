@@ -31,8 +31,6 @@ namespace MonoXAML.Objects
             
             _fillTexture = Utility.BrushToTexture(_rectangle.Fill);
 
-            _fillTexture.Save(@"C:\Users\Daniel Everland\Pictures\test.png");
-
             if(HasStroke)
                 _strokeTexture = Utility.StrokeToTexture((int)_rectangle.StrokeThickness, _rectangle.Stroke);
         }
