@@ -56,6 +56,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utility\DefaultTextures.cs" />
     <Compile Include="Utility\Extensions.cs" />
+    <Compile Include="Utility\IO.cs" />
     <Compile Include="Utility\Utility.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

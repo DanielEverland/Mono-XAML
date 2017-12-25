@@ -4,11 +4,108 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace MonoXAML
 {
     public static class Utility
     {
+        private const int GRADIENT_RESOLUTION = 128;
+        
+        public static Texture2D GradientToTexture(GradientBrush gradient)
+        {
+            if(gradient is LinearGradientBrush linearGradient)
+            {
+                return LinearGradientToTexture(linearGradient);
+            }
+            else
+            {
+                throw new NotImplementedException("Cannot render " + gradient.GetType());
+            }
+        }
+        private static Texture2D LinearGradientToTexture(LinearGradientBrush linearGradient)
+        {
+            Texture2D texture = new Texture2D(
+                    XAMLManager.GraphicsDeviceManager.GraphicsDevice, 
+                    GRADIENT_RESOLUTION, 
+                    GRADIENT_RESOLUTION);
+
+            Microsoft.Xna.Framework.Vector2 startPoint = linearGradient.StartPoint.ToVector() * GRADIENT_RESOLUTION;
+            Microsoft.Xna.Framework.Vector2 endPoint = linearGradient.EndPoint.ToVector() * GRADIENT_RESOLUTION;
+
+            float gradientDistance = Microsoft.Xna.Framework.Vector2.Distance(startPoint, endPoint);
+            
+            Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[GRADIENT_RESOLUTION * GRADIENT_RESOLUTION];
+
+            for (int i = 0; i < colors.Length; i++)
+            {
+                int x = i % GRADIENT_RESOLUTION;
+                int y = (int)Math.Floor((double)i / (double)GRADIENT_RESOLUTION);
+
+                float perpendicularDistance = PerpendicularDistance(startPoint, endPoint, new Microsoft.Xna.Framework.Vector2(x, y));
+                
+                colors[i] = GetColor(perpendicularDistance / gradientDistance, linearGradient);
+            }
+
+            texture.SetData(colors);
+
+            return texture;
+        }
+        private static Microsoft.Xna.Framework.Color GetColor(float offset, GradientBrush brush)
+        {
+            GradientStop left = null, right = null;
+
+            foreach (GradientStop stop in brush.GradientStops)
+            {
+                if(stop.Offset <= offset)
+                {
+                    left = stop;
+                }
+
+                if(stop.Offset >= offset)
+                {
+                    right = stop;
+                    break;
+                }
+            }
+
+            return Microsoft.Xna.Framework.Color.Lerp(left.Color.Convert(), right.Color.Convert(), (float)GetLocalDelta(offset, left.Offset, right.Offset));
+        }
+        /// <summary>
+        /// Returns point on line segment betwee <paramref name="a"/> & <paramref name="b"/> perpendicular to <paramref name="p"/>
+        /// </summary>
+        public static Microsoft.Xna.Framework.Vector2 LineSegmentPoint(Microsoft.Xna.Framework.Vector2 a, Microsoft.Xna.Framework.Vector2 b, Microsoft.Xna.Framework.Vector2 p)
+        {
+            float lineLength = Microsoft.Xna.Framework.Vector2.DistanceSquared(a, b);
+
+            //a == b
+            if (lineLength == 0)
+                return p;
+
+            float dot = Microsoft.Xna.Framework.Vector2.Dot(p - a, b - a);
+            float t = Math.Max(0, Math.Min(1, dot / lineLength));
+
+            return new Microsoft.Xna.Framework.Vector2()
+            {
+                X = a.X + t * (b.X - a.X),
+                Y = a.Y + t * (b.Y - a.Y),
+            };
+        }
+        /// <summary>
+        /// Returns the distance between <paramref name="a"/> and <paramref name="b"/> using <paramref name="p"/> as the perpendicular midway point
+        /// </summary>
+        /// <returns>Distance between <paramref name="a"/> and line segment point</returns>
+        private static float PerpendicularDistance(Microsoft.Xna.Framework.Vector2 a, Microsoft.Xna.Framework.Vector2 b, Microsoft.Xna.Framework.Vector2 p)
+        {
+            return Microsoft.Xna.Framework.Vector2.Distance(a, LineSegmentPoint(a, b, p));
+        }
+        private static double GetLocalDelta(double globalOffset, double leftOffset, double rightOffset)
+        {
+            if (rightOffset == leftOffset)
+                return 0;
+
+            return (globalOffset - leftOffset) / (rightOffset - leftOffset);
+        }
         public static Microsoft.Xna.Framework.Rectangle GetRectangle(System.Windows.FrameworkElement element)
         {
             return new Microsoft.Xna.Framework.Rectangle(GetRectPosition(element), GetRectSize(element));
