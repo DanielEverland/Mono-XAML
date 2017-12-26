@@ -31,6 +31,8 @@ namespace MonoXAML.Objects
         public Vector2 LocalPosition { get; set; } = Vector2.One * DEFAULT_POSITION;
         public Vector2 LocalSize { get; set; } = Vector2.One * DEFAULT_SIZE;
 
+        public int Width { get { return (int)WorldSize.X; } }
+        public int Height { get { return (int)WorldSize.Y; } }
         public Rectangle Rect { get { return new Rectangle(WorldPosition.ToPoint(), WorldSize.ToPoint()); } }
         public bool HasParent { get { return _parent != null; } }
         public RenderableObjectBase Parent { get { return _parent; } }
