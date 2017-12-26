@@ -54,11 +54,24 @@ namespace MonoXAML
         }
         public static Texture2D BrushToTexture(Brush brush, Vector2 size)
         {
-            if(brush is GradientBrush gradient)
+            Rectangle rect = new Rectangle(Point.Zero, size.ToPoint());
+
+            return BrushToTexture(brush, rect, rect);
+        }
+        /// <summary>
+        /// Returns a sliced texture given a brush
+        /// </summary>
+        /// <param name="brush">Brush class from XAML Designer</param>
+        /// <param name="source">Slice of <paramref name="destination"/> to return as Texture2D</param>
+        /// <param name="destination">Rectangle to display in screen space</param>
+        /// <returns></returns>
+        public static Texture2D BrushToTexture(Brush brush, Rectangle source, Rectangle destination)
+        {
+            if (brush is GradientBrush gradient)
             {
-                return GradientToTexture(gradient, size);
+                return GradientToTexture(gradient, source, destination);
             }
-            else if(brush is SolidColorBrush solidColor)
+            else if (brush is SolidColorBrush solidColor)
             {
                 return DefaultTextures.White;
             }
@@ -66,28 +79,34 @@ namespace MonoXAML
             {
                 throw new NotImplementedException("Cannot render " + brush.GetType());
             }
-        }
+        }        
         public static Texture2D GradientToTexture(GradientBrush gradient, Vector2 size)
+        {
+            Rectangle rect = new Rectangle(Point.Zero, size.ToPoint());
+
+            return GradientToTexture(gradient, rect, rect);
+        }
+        public static Texture2D GradientToTexture(GradientBrush gradient, Rectangle source, Rectangle destination)
         {
             if(gradient is LinearGradientBrush linearGradient)
             {
-                return LinearGradientToTexture(linearGradient, size);
+                return LinearGradientToTexture(linearGradient, source, destination);
             }
             else if(gradient is RadialGradientBrush radialGradient)
             {
-                return RadialGradientToTexture(radialGradient, size);
+                return RadialGradientToTexture(radialGradient, source, destination);
             }
             else
             {
                 throw new NotImplementedException("Cannot render " + gradient.GetType());
             }
         }
-        private static Texture2D RadialGradientToTexture(RadialGradientBrush gradientBrush, Vector2 size)
+        private static Texture2D RadialGradientToTexture(RadialGradientBrush gradientBrush, Rectangle source, Rectangle destination)
         {
             Texture2D texture = new Texture2D(
                     XAMLManager.GraphicsDeviceManager.GraphicsDevice,
-                    (int)size.X,
-                    (int)size.Y);
+                    source.Width,
+                    source.Height);
             
             Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[texture.Width * texture.Height];
 
@@ -97,8 +116,8 @@ namespace MonoXAML
                 {
                     colors[GetIndex(x, y, texture.Width)]
                         = GetColor(new Vector2(
-                            (float)x / (float)texture.Width,
-                            (float)y / (float)texture.Height),
+                            (float)(x + source.Location.X) / (float)destination.Width,
+                            (float)(y + source.Location.Y) / (float)destination.Height),
                             gradientBrush);
                 }
             }
@@ -107,23 +126,23 @@ namespace MonoXAML
 
             return texture;
         }
-        private static Texture2D LinearGradientToTexture(LinearGradientBrush linearGradient, Vector2 size)
+        private static Texture2D LinearGradientToTexture(LinearGradientBrush linearGradient, Rectangle source, Rectangle destination)
         {
             Texture2D texture = new Texture2D(
                     XAMLManager.GraphicsDeviceManager.GraphicsDevice,
-                    (int)size.X,
-                    (int)size.Y);
+                    source.Width,
+                    source.Height);
                         
             Microsoft.Xna.Framework.Color[] colors = new Microsoft.Xna.Framework.Color[texture.Width * texture.Height];
-
+            
             for (int x = 0; x < texture.Width; x++)
             {
                 for (int y = 0; y < texture.Height; y++)
                 {
                     colors[GetIndex(x, y, texture.Width)]
                         = GetColor(new Vector2(
-                            (float)x / (float)texture.Width,
-                            (float)y / (float)texture.Height),
+                            (float)(x + source.Location.X) / (float)destination.Width,
+                            (float)(y + source.Location.Y) / (float)destination.Height),
                             linearGradient);
                 }
             }
