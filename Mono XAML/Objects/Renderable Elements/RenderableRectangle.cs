@@ -35,8 +35,10 @@ namespace MonoXAML.Objects
         }
         private void CreateStroke()
         {
-            Stroke stroke = new Stroke();
+            if (_rectangle.Stroke == null)
+                return;
 
+            Stroke stroke = new Stroke(_rectangle.Stroke, (int)_rectangle.StrokeThickness);
             stroke.SetParent(this);
         }
         protected override void DoRender()
